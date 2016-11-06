@@ -65,7 +65,7 @@ class MenuContatos():
         c.email = input("\n\tIngrese el correo del contacto: ")
         while len(c.email) < 1:
             return
-        while len(c.mail) < 2: #modificar para que reconozca minimo 8 caracteres
+        while len(c.email) < 2: #modificar para que reconozca minimo 8 caracteres
             print("\n\t(!) Ingrese un correo valido!")
             c.email = input ("\tCorreo: ")
 
@@ -74,8 +74,7 @@ class MenuContatos():
         while len(c.apellidoPatC) < 1 :
             c.apellidoPatC = input("\t(!) Ingrese un apellido valido: ")
         c.apellidoMatC = input("\tApellido materno: ")
-        while len(c.apellidoMatC) < 1 :
-            c.apellidoMatC = None
+
         c.nombresC = input("\tNombres(s): ")
         while len(c.nombresC) < 1:
             c.nombresC = input("\t(!) Ingrese un nombre valido: ")
@@ -185,6 +184,7 @@ class MenuCorreoNuevo():
         (c.correo_id,c.fecha,c.hora,c.de,c.para,c.para_id,c.texto,c.asunto,\
         c.adjunto,c.eliminado))
 
+        input("\n\tCorreo guardado exitosamente!")
         db.commit()
 
 class MainMenu():
