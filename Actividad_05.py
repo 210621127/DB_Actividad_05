@@ -20,7 +20,6 @@ class Usuario():
         self.apellidoPatU = data
         self.apellidoMatU = data
         self.nombresU = data
-        self.contRegistrados = 0
     def __str__ (self):
         return "\n\tCorreo: "+str(self.correo)+"\n\tContraseña: "+str(self.contra)\
             +"\n\tNombre: "+str(self.apellidoPatU)+" "+str(self.apellidoMatU)+","\
@@ -28,8 +27,8 @@ class Usuario():
 
 class Contacto():
     def __init__(self,data):
+        self.contacto_id = data
         self.email = data
-        self.contacto_id = 0
         self.registra = data
         self.apellidoPatC = data
         self.apellidoMatC = data
@@ -37,20 +36,23 @@ class Contacto():
 
 class Correo():
     def __init__(self, data):
-        self.correo_id = 0
+        self.correo_id = data
         self.fecha = data
         self.hora = data
         self.de = data
         self.para = data
+        self.para_id = data
         self.texto = data
+        self.asunto = data
         self.adjunto = data
+        self.eliminado = data
 
 class MenuCorreoEnviado():
     def __init__(self):
         pass
 
+
 class MenuContatos():
-    c = Contacto(None)
 
     def __init__(self):
         pass
@@ -58,16 +60,15 @@ class MenuContatos():
         u = user
         cursor = db.cursor()
         c = Contacto(None)
-        os.system("clear")
-        print("\n\t- - - Agregar contacto - - -\n")
+        print("\n\t* * * Agregar contacto * * *\n")
+        print("\n\tPresione solo <ENTER> para regresar...")
 
         c.email = input("\n\tIngrese el correo del contacto: ")
         while len(c.email) < 1:
+            return
+        while len(c.mail) < 2: #modificar para que reconozca minimo 8 caracteres
             print("\n\t(!) Ingrese un correo valido!")
             c.email = input ("\tCorreo: ")
-        u.contRegistrados  += 1
-        c.contacto_id = u.contRegistrados
-    
 
         c.registra = u.correo
         c.apellidoPatC = input("\tApellido paterno: ")
@@ -75,19 +76,16 @@ class MenuContatos():
             c.apellidoPatC = input("\t(!) Ingrese un apellido valido: ")
         c.apellidoMatC = input("\tApellido materno: ")
         while len(c.apellidoMatC) < 1 :
-            c.apellidoMatC = input("\t(!) Ingrese un apellido valido: ")
+            c.apellidoMatC = None
         c.nombresC = input("\tNombres(s): ")
         while len(c.nombresC) < 1:
             c.nombresC = input("\t(!) Ingrese un nombre valido: ")
 
-        cursor.execute("INSERT INTO CONTACTO(email, contacto_id,registra,\
+        cursor.execute("INSERT INTO CONTACTO(contacto_id,email,registra,\
         apellidoPatC,apellidoMatC,nombresC) VALUES (?,?,?,?,?,?)", \
-        (c.email,c.contacto_id,c.registra,c.apellidoPatC,c.apellidoMatC,c.nombresC))
+        (c.contacto_id,c.email,c.registra,c.apellidoPatC,c.apellidoMatC,c.nombresC))
 
-        cursor.execute("UPDATE USUARIO SET contRegistrados = ? WHERE correo = ?",\
-        (u.contRegistrados, u.correo))
         db.commit()
-
         input("\n\tContacto registrado satisfactoriamente...")
 
 
@@ -96,7 +94,7 @@ class MenuContatos():
         opc = -1
         while True:
             os.system("clear")
-            print("\t* * * CONTACTOS * * * \n")
+            print("\n\t* * * CONTACTOS * * * \n")
             #print("\n\t1) Mostrar contactos ") # Muestra contactos - con id-
             print("\t2) Agregar nuevo contacto") #Agrega un nuevo contacto -correo-
             #print("\t3) Eliminar contacto") # Elimina de la base de datos (submenu)
@@ -108,6 +106,7 @@ class MenuContatos():
                 if opc == 1:
                     pass
                 elif opc == 2:
+                    os.system("clear")
                     self.agregar(user,db)
                 elif opc == 3:
                     pass
@@ -121,10 +120,75 @@ class MenuContatos():
 class MenuCorreoNuevo():
     def __init (self):
         pass
+    def menu(user,db):
+        menuC = MenuContatos()
+        u = user
+        cursor = db.cursor()
+        c = Correo(None)
 
+        while True:
+            os.system("clear")
+            print("\n\t* * * Correo Nuevo* * *\n")
+
+            ahora = time.strftime("%c")
+            c.fecha = time.strftime("%x")
+
+            c.hora = time.strftime("%X")
+            print("\tFecha: ", c.fecha)
+            print("\tHora:  ",c.hora)
+
+            c.de = u.correo
+            print("\tDe:    ",c.de)
+
+            c.para = input("\tPara:  ")
+            while len(c.para) < 1:
+                c.para = input("\tIngrese un correo valido: ")
+            rows = cursor.execute("SELECT * FROM CONTACTO WHERE email = ? AND \
+                registra = ?", (c.para, u.correo))
+            for row in rows:
+                c.para_id = row[0]
+
+            if  c.para_id != None:
+                break
+            else:
+                print("\n\t(!) El contacto que escribio no esta registrado...")
+                input("\tPresione una tecla para continuar...")
+                menuC.agregar(user,db)
+
+
+        linea = ''
+        print("\n\tPresione solo <ENTER> para continuar o escriba el texto...")
+        c.texto = input("\tTexto:\n\t")
+        while True and len(c.texto) > 0:
+            linea = input("\t")
+            if len(linea) < 1:
+                break
+            c.texto += '\n'+linea
+        if len(c.texto ) == 0:
+            c.texto = None
+
+        c.asunto = input("\tAsunto: ")
+        if len(c.asunto) == 0:
+            c.asunto = None
+
+        c.adjunto = input("\tAdjunto: ")
+        if len(c.adjunto) == 0:
+            c.adjunto = None
+
+        c.eliminado = False
+
+        ahora = time.strftime("%c")
+        c.fecha = time.strftime("%x")
+        c.hora = time.strftime("%X")
+
+        cursor.execute("INSERT INTO CORREO (correo_id,fecha,hora,de,para,\
+        para_id,texto,asunto,adjunto,eliminado) VALUES (?,?,?,?,?,?,?,?,?,?)",\
+        (c.correo_id,c.fecha,c.hora,c.de,c.para,c.para_id,c.texto,c.asunto,\
+        c.adjunto,c.eliminado))
+
+        db.commit()
 
 class MainMenu():
-
 
     def __init__(self):
         pass
@@ -147,13 +211,13 @@ class MainMenu():
 
             if op == 1:
                 os.system("clear")
-                pass
+                print ("(!) Modulo no implementado...")
             elif op == 2:
                 os.system("clear")
                 mContactos.menu(user,db)
             elif op == 3:
                 os.system("clear")
-                pass
+                MenuCorreoNuevo.menu(user,db)
             elif op == 0:
                 db.commit()
                 break
@@ -191,7 +255,6 @@ class Login_Registro():
                 u.apellidoPatU = row[2]
                 u.apellidoMatU = row[3]
                 u.nombresU = row[4]
-                u.contRegistrados = row[5]
 
             if u.correo != None:
                 input("\n\tLogin correcto!")
@@ -234,9 +297,9 @@ class Login_Registro():
                 print("(!) Nombre invalido!")
                 user.nombresU = input("\tIngrese su nombre de nuevo: ")
             c.execute("INSERT INTO USUARIO (correo,contra,apellidoPatU,\
-                apellidoMatU,nombresU,contRegistrados) VALUES (?,?,?,?,?,?)",\
+                apellidoMatU,nombresU) VALUES (?,?,?,?,?)",\
                 (user.correo, user.contra,user.apellidoPatU,user.apellidoMatU,\
-                user.nombresU,user.contRegistrados))
+                user.nombresU))
             db.commit()
             break
 
