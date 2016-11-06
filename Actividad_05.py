@@ -29,7 +29,7 @@ class Usuario():
 class Contacto():
     def __init__(self,data):
         self.email = data
-        self.contacto_id = data
+        self.contacto_id = 0
         self.registra = data
         self.apellidoPatC = data
         self.apellidoMatC = data
@@ -37,7 +37,7 @@ class Contacto():
 
 class Correo():
     def __init__(self, data):
-        self.correo_id = data
+        self.correo_id = 0
         self.fecha = data
         self.hora = data
         self.de = data
@@ -54,23 +54,45 @@ class MenuContatos():
 
     def __init__(self):
         pass
-    def agregar(self):
+    def agregar(self, user, db):
+        u = user
+        cursor = db.cursor()
         c = Contacto(None)
         os.system("clear")
         print("\n\t- - - Agregar contacto - - -\n")
 
         c.email = input("\n\tIngrese el correo del contacto: ")
-        while len(c.email) < 5:
+        while len(c.email) < 1:
             print("\n\t(!) Ingrese un correo valido!")
             c.email = input ("\tCorreo: ")
+        u.contRegistrados  += 1
+        c.contacto_id = u.contRegistrados
+    
+
+        c.registra = u.correo
+        c.apellidoPatC = input("\tApellido paterno: ")
+        while len(c.apellidoPatC) < 1 :
+            c.apellidoPatC = input("\t(!) Ingrese un apellido valido: ")
+        c.apellidoMatC = input("\tApellido materno: ")
+        while len(c.apellidoMatC) < 1 :
+            c.apellidoMatC = input("\t(!) Ingrese un apellido valido: ")
+        c.nombresC = input("\tNombres(s): ")
+        while len(c.nombresC) < 1:
+            c.nombresC = input("\t(!) Ingrese un nombre valido: ")
+
+        cursor.execute("INSERT INTO CONTACTO(email, contacto_id,registra,\
+        apellidoPatC,apellidoMatC,nombresC) VALUES (?,?,?,?,?,?)", \
+        (c.email,c.contacto_id,c.registra,c.apellidoPatC,c.apellidoMatC,c.nombresC))
+
+        cursor.execute("UPDATE USUARIO SET contRegistrados = ? WHERE correo = ?",\
+        (u.contRegistrados, u.correo))
+        db.commit()
+
+        input("\n\tContacto registrado satisfactoriamente...")
 
 
+    def menu(self,user,db):
 
-
-        input("\n\tPresione una tecla para continuar...")
-
-
-    def menu(self):
         opc = -1
         while True:
             os.system("clear")
@@ -86,7 +108,7 @@ class MenuContatos():
                 if opc == 1:
                     pass
                 elif opc == 2:
-                    self.agregar()
+                    self.agregar(user,db)
                 elif opc == 3:
                     pass
                 elif opc == 4:
@@ -106,10 +128,11 @@ class MainMenu():
 
     def __init__(self):
         pass
-    def menuGeneral(self,u,db):
+    def menuGeneral(self,user,db):
         mNuevo = MenuCorreoNuevo()
         mEnviado = MenuCorreoEnviado()
         mContactos = MenuContatos()
+        u = user
         db = db
         op = -1
         while True:
@@ -127,7 +150,7 @@ class MainMenu():
                 pass
             elif op == 2:
                 os.system("clear")
-                mContactos.menu()
+                mContactos.menu(user,db)
             elif op == 3:
                 os.system("clear")
                 pass
@@ -162,21 +185,17 @@ class Login_Registro():
 
             rows = c.execute ('SELECT * FROM USUARIO WHERE correo = ? AND \
                 contra = ?',(usuario, contra))
-            input("p")
-            print ("rows: ", c.fetchone())
+            for row in rows:
+                u.correo = row[0]
+                u.contra = row[1]
+                u.apellidoPatU = row[2]
+                u.apellidoMatU = row[3]
+                u.nombresU = row[4]
+                u.contRegistrados = row[5]
 
-            if c.fetchall():
+            if u.correo != None:
                 input("\n\tLogin correcto!")
-                for row in rows:
-                    u.correo = row[0]
-                    u.contra = row[1]
-                    u.apellidoPatU = row[2]
-                    u.apellidoMatU = row[3]
-                    u.nombresU = row[4]
-                    u.contRegistrados = row[5]
 
-                print(u)
-                input("...")
                 return True
             else:
                 input("\n\t(!) Usuario o contraseña incorrectos!!")
