@@ -51,7 +51,6 @@ class MenuCorreoEnviado():
     def __init__(self):
         pass
 
-
 class MenuContatos():
 
     def __init__(self):
